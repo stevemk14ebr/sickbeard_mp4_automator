@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import json
 import sys
 import os
 import guessit
@@ -32,6 +33,7 @@ log.info("Manual processor started.")
 
 settings = None
 
+processed = None
 
 def mediatype():
     print("Select media type:")
@@ -53,6 +55,24 @@ def mediatype():
         print("Invalid selection")
         return mediatype()
 
+def checkAlreadyProcessed(inputfile):
+    global processed
+    serializedFile = os.path.join(sys.path[0], 'processed.json')
+
+    if processed is None:
+        try:
+            with open(serializedFile, 'r') as infile:
+                processed = set(json.load(infile))
+        except:
+            processed = set()
+
+    if inputfile in processed:
+        return True
+    else:
+        processed.add(inputfile)
+        with open(serializedFile, 'w') as outfile:
+            json.dump(list(processed), outfile)
+        return False
 
 def getValue(prompt, num=False):
     print(prompt + ":")
@@ -198,6 +218,9 @@ def tvInfo(guessData, tmdbid=None, tvdbid=None, imdbid=None, season=None, episod
 
 
 def processFile(inputfile, tagdata, converter, info=None, relativePath=None):
+    if checkAlreadyProcessed(inputfile):
+        return
+        
     # Process
     info = info or converter.isValidSource(inputfile)
     if not info:
