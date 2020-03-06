@@ -71,7 +71,7 @@ def checkAlreadyProcessed(inputfile):
     else:
         processed.add(inputfile)
         with open(serializedFile, 'w') as outfile:
-            json.dump(list(processed), outfile)
+            json.dump(list(processed), outfile, indent = 4)
         return False
 
 def getValue(prompt, num=False):
@@ -233,7 +233,11 @@ def processFile(inputfile, tagdata, converter, info=None, relativePath=None):
     elif tagdata.mediatype == MediaType.TV:
         log.info("Processing %s Season %02d Episode %02d - %s" % (tagdata.showname, int(tagdata.season), int(tagdata.episode), tagdata.title))
 
-    output = converter.process(inputfile, True)
+    try:
+        output = converter.process(inputfile, True)
+    except Exception as ex:
+        log.exception("There was an error while converting the file: " + str(ex))
+        
     if output:
         if tagdata:
             try:
